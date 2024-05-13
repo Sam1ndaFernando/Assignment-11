@@ -2,98 +2,81 @@ import { CustomerModel } from "../model/customerModel.js";
 import { setCustomerCount } from "./indexController.js";
 import { setCustomerIds } from "./orderController.js";
 
-//customer form
+// Initialize customer database array
+let customer_db = [];
+
+// Customer form elements
 const customer_Id = $('#customerId');
 const full_name = $('#fullname');
 const address = $('#address');
 const contact = $('#contact');
-const customer_btn = $('#customer_btn button');
+const customer_btns = $('#customer_btn button');
 const customer_search = $('#customer_search input');
 const customer_search_select = $('#customer_search select');
 
-//load the customer table
+// Function to load the customer table from customer_db
 const loadCustomerTable = function () {
-    $.ajax({
-        type: 'GET',
-        url: 'http://localhost:8080/customer',
-        success: function (data) {
-            $('tbody').eq(0).empty();
-            data.forEach(item => {
-                $('tbody').eq(0).append(
-                    `<tr>
-                    <th scope="row">${item.customerId}</th>
-                    <td>${item.name}</td>
-                    <td>${item.address}</td>
-                    <td>${item.contact}</td>
-                    </tr>`
-                );
-            });
-            setCustomerCount(data.length);
-            setCustomerIds(data);
-
-        },
-        error: function (err) {
-            Swal.fire('Something went wrong', '', 'info')
-        }
+    $('tbody').eq(0).empty();
+    customer_db.forEach(customer => {
+        $('tbody').eq(0).append(
+            `<tr>
+                <th scope="row">${customer.customerId}</th>
+                <td>${customer.name}</td>
+                <td>${customer.address}</td>
+                <td>${customer.contact}</td>
+            </tr>`
+        );
     });
+    setCustomerCount(customer_db.length);
+    setCustomerIds(customer_db);
 }
 
+// Initial loading of customer table
 loadCustomerTable();
 
-//add customer
-customer_btn.eq(0).on('click', () => {
-        let customerId = customer_Id.val().trim();
-        let fullName = full_name.val().trim();
-        let addressVal = address.val().trim();
-        let contactVal = parseInt(contact.val().trim());
+/// Function to add customer to customer_db
+customer_btns.eq(0).on('click', () => {
+    let customerId = customer_Id.val().trim();
+    let fullName = full_name.val().trim();
+    let addressVal = address.val().trim();
+    let contactVal = parseInt(contact.val().trim());
 
-        if (validate(customerId, 'customer Id') && validate(fullName, 'full name') &&
-            validate(addressVal, 'address') && validate(contact, 'contact')) {
+    if (validate(customerId, 'customer Id') && validate(fullName, 'full name') &&
+        validate(addressVal, 'address') && validate(contactVal, 'contact')) {
 
-            let customer = new CustomerModel(customerId, fullName, addressVal, contactVal);
+        let customer = new CustomerModel(customerId, fullName, addressVal, contactVal);
+        customer_db.push(customer); // Add customer to customer_db array
 
-
-            Swal.fire({
-                title: 'Do you want to save the changes?',
-                showDenyButton: true,
-                confirmButtonText: 'Save',
-                denyButtonText: `Don't save`,
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        type: 'POST',
-                        url: 'http://localhost:8080/customer',
-                        contentType: 'application/json',
-                        data: JSON.stringify(customer),
-                        success: function (res) {
-                            Swal.fire('Customer Saved!', '', 'success');
-                            customer_btn.eq(3).click();
-                            loadCustomerTable();
-                        },
-                        error: function (err) {
-                            Swal.fire('Changes are not saved', '', 'info')
-                        }
-                    });
-
-                } else if (result.isDenied) {
-                    Swal.fire('Changes are not saved', '', 'info')
-                }
-            });
-        }
+        Swal.fire({
+            title: 'Do you want to save the changes?',
+            showDenyButton: true,
+            confirmButtonText: 'Save',
+            denyButtonText: `Don't save`,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire('Customer Saved!', '', 'success');
+                customer_btns.eq(3).click();
+                loadCustomerTable();
+            } else if (result.isDenied) {
+                Swal.fire('Changes are not saved', '', 'info')
+            }
+        });
     }
-);
+});
 
-//update customer
-customer_btn.eq(1).on('click', () => {
-        let customerId = customer_Id.val().trim();
-        let fullName = full_name.val().trim();
-        let addressVal = address.val().trim();
-        let contactVal = parseFloat(contact.val().trim());
+// Function to update customer in customer_db
+customer_btns.eq(1).on('click', () => {
+    let customerId = customer_Id.val().trim();
+    let fullName = full_name.val().trim();
+    let addressVal = address.val().trim();
+    let contactVal = parseInt(contact.val().trim());
 
-        if (validate(customerId, 'customer Id') && validate(fullName, 'full name') &&
-            validate(addressVal, 'address') && validate(contactVal, 'contact')) {
+    if (validate(customerId, 'customer Id') && validate(fullName, 'full name') &&
+        validate(addressVal, 'address') && validate(contactVal, 'contact')) {
 
-            let customer = new CustomerModel(customerId, fullName, addressVal, contactVal);
+        let customerIndex = customer_db.findIndex(customer => customer.customerId === customerId);
+        if (customerIndex !== -1) {
+            customer_db[customerIndex] = new CustomerModel(customerId, fullName, addressVal, contactVal);
 
             Swal.fire({
                 title: 'Do you want to update the customer?',
@@ -102,36 +85,30 @@ customer_btn.eq(1).on('click', () => {
                 denyButtonText: `Don't update`,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.ajax({
-                        type: 'PUT',
-                        url: 'http://localhost:8080/customer',
-                        contentType: 'application/json',
-                        data: JSON.stringify(customer),
-                        success: function (res) {
-                            Swal.fire('Customer Updated!', '', 'success');
-                            customer_btn.eq(3).click();
-                            loadCustomerTable();
-                        },
-                        error: function (err) {
-                            Swal.fire('Customer not updated!', '', 'info')
-                        }
-                    });
-
+                    Swal.fire('Customer Updated!', '', 'success');
+                    customer_btns.eq(3).click();
+                    loadCustomerTable();
                 } else if (result.isDenied) {
                     Swal.fire('Changes are not updated!', '', 'info')
                 }
             });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Customer not found 😓',
+            });
         }
     }
-);
+});
 
-//delete customer
-customer_btn.eq(2).on('click', () => {
-        let customerId = customer_Id.val().trim();
+// Function to delete customer from customer_db
+customer_btns.eq(2).on('click', () => {
+    let customerId = customer_Id.val().trim();
 
-        if (validate(customerId, 'customer Id')) {
-
-            const customer = { customerId: customerId }
+    if (validate(customerId, 'customer Id')) {
+        let customerIndex = customer_db.findIndex(customer => customer.customerId === customerId);
+        if (customerIndex !== -1) {
+            customer_db.splice(customerIndex, 1);
 
             Swal.fire({
                 title: 'Are you sure?',
@@ -143,20 +120,9 @@ customer_btn.eq(2).on('click', () => {
                 confirmButtonText: 'Yes, delete it!'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.ajax({
-                        type: 'DELETE',
-                        url: 'http://localhost:8080/customer',
-                        contentType: 'application/json',
-                        data: JSON.stringify(customer),
-                        success: function (res) {
-                            Swal.fire('Deleted!', 'Your Customer has been deleted.', 'success');
-                            customer_btn.eq(3).click();
-                            loadCustomerTable();
-                        },
-                        error: function (err) {
-                            Swal.fire('Customer not Deleted!', '', 'info')
-                        }
-                    });
+                    Swal.fire('Deleted!', 'Your Customer has been deleted.', 'success');
+                    customer_btns.eq(3).click();
+                    loadCustomerTable();
                 } else if (result.isDenied) {
                     Swal.fire('Changes are not Deleted!', '', 'info')
                 }
@@ -164,14 +130,13 @@ customer_btn.eq(2).on('click', () => {
         } else {
             Swal.fire({
                 icon: 'error',
-                title: 'Customer did not exists 😓',
+                title: 'Customer not found 😓',
             });
         }
     }
-);
+});
 
-
-//load customer
+// Function to handle click on customer table row and populate form fields
 $('tbody').eq(0).on('click', 'tr', function () {
     customer_Id.val($(this).find('th').eq(0).text());
     full_name.val($(this).find('td').eq(0).text());
@@ -179,6 +144,7 @@ $('tbody').eq(0).on('click', 'tr', function () {
     contact.val($(this).find('td').eq(2).text());
 });
 
+// Function to validate input fields
 function validate(value, field_name) {
     if (!value) {
         Swal.fire({
