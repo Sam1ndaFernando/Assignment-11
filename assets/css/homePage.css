@@ -1,0 +1,38 @@
+.home1{
+    width: 100%;
+    height: 874px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    font-family: sans-serif;
+    background: linear-gradient(180deg, #FFFFFF, rgba(223, 0, 255, 0.34));
+}
+
+.chart-card{
+    height: fit-content;
+    box-shadow: 0 20px 40px 0 rgba(0, 0, 0, 0.03);
+    border: none;
+    border-radius: 30px;
+    padding: 25px;
+    background-color: #ffffff;
+}
+
+.chart-title{
+    font-size: 24px;
+    color: var(--bs-black);
+}
+
+.chart-card div{
+    width: 550px;
+}
+
+#lineChart{
+    width: 800px !important;
+    height: 400px !important;
+}
+
+.card{
+    background-color: #4c70de;
+    border-radius: 10px;
+}
